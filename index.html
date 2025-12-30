@@ -1,0 +1,678 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>💛 Daisy Love Timer</title>
+  <style>
+    :root{
+      --bg1:#fff7fb;
+      --bg2:#f6fffb;
+      --ink:#1f2230;
+      --muted:#6b7280;
+      --white:#ffffff;
+      --card: rgba(255,255,255,.72);
+      --stroke: rgba(0,0,0,.08);
+      --shadow: 0 18px 50px rgba(17, 24, 39, .12);
+      --accent:#ff4da6;
+      --accent2:#ffd44d;
+      --green:#2f7a5f;
+    }
+
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Noto Sans Thai", Arial, sans-serif;
+      color:var(--ink);
+      min-height:100vh;
+      overflow-x:hidden;
+      background:
+        radial-gradient(1200px 800px at 10% 20%, #fff 0%, transparent 55%),
+        radial-gradient(900px 700px at 90% 20%, #fff 0%, transparent 55%),
+        linear-gradient(135deg, var(--bg1), var(--bg2));
+      position:relative;
+    }
+
+    /* Daisy wallpaper */
+    .daisy-field{
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      z-index:0;
+      opacity:.32;
+      background-image:
+        radial-gradient(circle at 10px 10px, rgba(255,212,77,.85) 0 4px, transparent 5px),
+        radial-gradient(circle at 10px 10px, rgba(255,255,255,.95) 0 10px, transparent 11px),
+        radial-gradient(circle at 38px 40px, rgba(255,212,77,.8) 0 3px, transparent 4px),
+        radial-gradient(circle at 38px 40px, rgba(255,255,255,.95) 0 8px, transparent 9px);
+      background-size: 120px 120px, 120px 120px, 140px 140px, 140px 140px;
+      filter: blur(.2px);
+    }
+
+    /* Soft blobs */
+    .blob{
+      position:absolute;
+      width:520px;height:520px;
+      border-radius: 40% 60% 55% 45% / 55% 45% 60% 40%;
+      background: radial-gradient(circle at 30% 25%, rgba(255,77,166,.45), transparent 55%),
+                  radial-gradient(circle at 70% 75%, rgba(255,212,77,.45), transparent 55%);
+      filter: blur(18px);
+      opacity:.55;
+      z-index:0;
+      animation: floaty 10s ease-in-out infinite;
+    }
+    .blob.b1{top:-180px;left:-180px}
+    .blob.b2{bottom:-220px;right:-220px; animation-duration: 12s}
+    @keyframes floaty{
+      0%,100%{transform: translate(0,0) scale(1)}
+      50%{transform: translate(18px, -14px) scale(1.03)}
+    }
+
+    .wrap{
+      position:relative;
+      z-index:2;
+      max-width:1100px;
+      margin:0 auto;
+      padding: 28px 18px 60px;
+    }
+
+    header{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:16px;
+      margin-bottom: 18px;
+    }
+
+    .title{
+      padding: 18px 18px 16px;
+      border:1px solid var(--stroke);
+      background: var(--card);
+      border-radius: 22px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(12px);
+      flex:1;
+      position:relative;
+      overflow:hidden;
+    }
+
+    .title h1{
+      margin:0;
+      font-size: clamp(26px, 3.2vw, 40px);
+      letter-spacing:.2px;
+      line-height:1.05;
+    }
+    .title p{
+      margin:10px 0 0;
+      color:var(--muted);
+      font-size: 14px;
+    }
+
+    .badge{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      border:1px dashed rgba(255,77,166,.45);
+      background: rgba(255,255,255,.62);
+      padding: 12px 14px;
+      border-radius: 18px;
+      box-shadow: 0 10px 25px rgba(0,0,0,.08);
+      white-space:nowrap;
+      backdrop-filter: blur(10px);
+      height: fit-content;
+    }
+    .badge .dot{
+      width:10px;height:10px;border-radius:99px;
+      background: radial-gradient(circle at 30% 30%, #fff, #ff4da6);
+      box-shadow: 0 0 0 6px rgba(255,77,166,.12);
+    }
+    .badge b{font-size:14px}
+    .badge span{font-size:12px;color:var(--muted)}
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap: 16px;
+      margin-top: 14px;
+    }
+    @media (max-width: 900px){
+      header{flex-direction:column}
+      .grid{grid-template-columns:1fr}
+    }
+
+    .card{
+      border:1px solid var(--stroke);
+      background: var(--card);
+      border-radius: 22px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(12px);
+      overflow:hidden;
+      position:relative;
+    }
+
+    .card .head{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      padding: 16px 18px;
+      border-bottom: 1px solid rgba(0,0,0,.06);
+      background: linear-gradient(180deg, rgba(255,255,255,.75), rgba(255,255,255,.4));
+    }
+    .card .head h2{
+      margin:0;
+      font-size: 16px;
+      letter-spacing:.2px;
+    }
+    .card .body{padding: 18px}
+
+    /* Timer */
+    .timer{
+      display:grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-top: 6px;
+    }
+    @media (max-width: 520px){
+      .timer{grid-template-columns: repeat(2, 1fr)}
+    }
+    .tbox{
+      padding: 14px 12px;
+      border-radius: 18px;
+      border: 1px solid rgba(0,0,0,.06);
+      background: rgba(255,255,255,.72);
+      text-align:center;
+      position:relative;
+      overflow:hidden;
+    }
+    .tbox .num{
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: .5px;
+    }
+    .tbox .lbl{
+      margin-top: 4px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .since{
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    /* Photo grid */
+    .photos{
+      display:grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+    .ph{
+      border-radius: 18px;
+      border: 1px solid rgba(0,0,0,.07);
+      background: rgba(255,255,255,.7);
+      overflow:hidden;
+      position:relative;
+      min-height: 150px;
+    }
+    .ph img{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      display:block;
+    }
+    .ph .overlay{
+      position:absolute;
+      inset:0;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      padding:12px;
+      text-align:center;
+      color: rgba(31,34,48,.92);
+      background: linear-gradient(180deg, rgba(255,255,255,.65), rgba(255,255,255,.35));
+      backdrop-filter: blur(4px);
+    }
+    .ph .overlay small{color:var(--muted)}
+    .ph input[type="file"]{
+      width: 100%;
+      max-width: 220px;
+      font-size: 12px;
+    }
+
+    /* Button */
+    .btn{
+      width:100%;
+      padding: 14px 16px;
+      border:none;
+      border-radius: 18px;
+      font-weight: 800;
+      font-size: 15px;
+      cursor:pointer;
+      color:#1f2230;
+      background: radial-gradient(circle at 20% 20%, #fff, rgba(255,255,255,.7)),
+                  linear-gradient(135deg, rgba(255,77,166,.55), rgba(255,212,77,.55));
+      box-shadow: 0 18px 40px rgba(255,77,166,.18), 0 12px 28px rgba(255,212,77,.12);
+      position:relative;
+      overflow:hidden;
+      transform: translateZ(0);
+      transition: transform .15s ease, filter .15s ease;
+    }
+    .btn:hover{transform: translateY(-1px); filter: saturate(1.1)}
+    .btn:active{transform: translateY(1px) scale(.99)}
+    .btn .shine{
+      position:absolute;
+      inset:-40%;
+      background: linear-gradient(120deg, transparent 40%, rgba(255,255,255,.6) 50%, transparent 60%);
+      transform: translateX(-60%) rotate(8deg);
+      animation: shine 3.2s ease-in-out infinite;
+      pointer-events:none;
+    }
+    @keyframes shine{
+      0%,60%{transform: translateX(-70%) rotate(8deg)}
+      100%{transform: translateX(70%) rotate(8deg)}
+    }
+
+    .msg{
+      margin-top: 12px;
+      padding: 14px 14px;
+      border-radius: 18px;
+      border: 1px dashed rgba(47,122,95,.35);
+      background: rgba(255,255,255,.65);
+      color: rgba(31,34,48,.9);
+      line-height: 1.6;
+      font-size: 14px;
+    }
+
+    footer{
+      margin-top: 18px;
+      text-align:center;
+      color: var(--muted);
+      font-size: 12px;
+      padding: 12px 0 0;
+    }
+    footer b{color: #ff4da6}
+
+    /* Canvas effect */
+    #fx{
+      position:fixed;
+      inset:0;
+      z-index:5;
+      pointer-events:none;
+    }
+
+    /* Tiny daisy icon */
+    .daisy{
+      width: 22px;
+      height: 22px;
+      display:inline-block;
+      vertical-align:-4px;
+      margin-right:6px;
+      filter: drop-shadow(0 10px 16px rgba(0,0,0,.12));
+    }
+  </style>
+</head>
+
+<body>
+  <div class="daisy-field"></div>
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+
+  <canvas id="fx"></canvas>
+
+  <div class="wrap">
+    <header>
+      <div class="title">
+        <h1>
+          <svg class="daisy" viewBox="0 0 64 64" aria-hidden="true">
+            <defs>
+              <radialGradient id="g" cx="30%" cy="30%">
+                <stop offset="0" stop-color="#fff"/>
+                <stop offset="1" stop-color="#ffffffcc"/>
+              </radialGradient>
+            </defs>
+            <!-- petals -->
+            <g fill="url(#g)">
+              <ellipse cx="32" cy="10" rx="10" ry="16"/>
+              <ellipse cx="32" cy="54" rx="10" ry="16"/>
+              <ellipse cx="10" cy="32" rx="16" ry="10"/>
+              <ellipse cx="54" cy="32" rx="16" ry="10"/>
+              <ellipse cx="16" cy="16" rx="10" ry="16" transform="rotate(-45 16 16)"/>
+              <ellipse cx="48" cy="16" rx="10" ry="16" transform="rotate(45 48 16)"/>
+              <ellipse cx="16" cy="48" rx="10" ry="16" transform="rotate(45 16 48)"/>
+              <ellipse cx="48" cy="48" rx="10" ry="16" transform="rotate(-45 48 48)"/>
+            </g>
+            <!-- center -->
+            <circle cx="32" cy="32" r="10" fill="#ffd44d"/>
+            <circle cx="28" cy="28" r="3.5" fill="#fff7bf" opacity=".9"/>
+          </svg>
+          ✧˚ ༘⋆2026✧˚ ༘ ⋆น้องเฟิร์นเเสนน่ารัก🌿˚‧｡⋆🌼⋆｡‧˚
+        </h1>
+        <p>นับเวลาตั้งแต่ <b>13/12/2025</b> จนถึง “ตอนนี้”🫵🏻ــــــــــــــــﮩ٨ـ❤️️ </p>
+      </div>
+
+      <div class="badge">
+        <div class="dot"></div>
+        <div>
+          <b>ทำโดยคิม</b><br/>
+          <span>for น้องเฟิร์น 🌼</span>
+        </div>
+      </div>
+    </header>
+
+    <section class="grid">
+      <!-- Timer card -->
+      <div class="card">
+        <div class="head">
+          <h2>⏳ Love Timer</h2>
+          <span style="font-size:12px;color:var(--muted)">13 Dec 2025 → Now</span>
+        </div>
+        <div class="body">
+          <div class="timer" id="timerBoxes">
+            <div class="tbox"><div class="num" id="d">0</div><div class="lbl">Days</div></div>
+            <div class="tbox"><div class="num" id="h">0</div><div class="lbl">Hours</div></div>
+            <div class="tbox"><div class="num" id="m">0</div><div class="lbl">Minutes</div></div>
+            <div class="tbox"><div class="num" id="s">0</div><div class="lbl">Seconds</div></div>
+          </div>
+
+          <div class="since" id="sinceText"></div>
+
+          <button class="btn" id="btnFx">
+            🌸 กดแล้วให้ดอกเดซี่เต็มจอ! 🌼
+            <span class="shine"></span>
+          </button>
+
+          <div class="msg">
+            <b>ข้อความจากคิม:</b><br/>
+            ขอบคุณที่อยู่ด้วยกันนะเฟิร์น 🌼<br/>
+            ปีใหม่ทั้งที่ก็ขออวยพรให้การงานอาชีพเฟิร์นปัง ทำอะไรก็ราบรื่น             
+          </div>
+          <div class="msg">
+            <b>𓆩🥺🫶🏻💞𓆪</b><br/>
+            ถ้ามีปัญหาหรือต้องการอะไรพูดตรงๆได้เลยนะ(っᵔ◡ᵔ)っ <br/>
+            คิมจะไม่ทำร้ายเฟิร์นทั้งทางกายเเละใจ สัญญา🫶🥹<br/>
+            เฟิร์นเป็นเเฟนคนเเรกของคิม🌿 ดังนั้นเเล้วคิมจะพยายามให้ดีที่สุดนะ<br/>
+            ถึงคิมจะพูดไม่ค่อยเก่งเเต่คิมจะเป็นกำลังให้เฟิร์นตลอดไปเอง ˚˖𓍢🌷✧˚.🎀⋆ 
+          </div>
+        </div>
+      </div>
+
+      <!-- Photos card -->
+      <div class="card">
+            <div class="head">
+                      <h2>📸 รูปของเรา🫠🤌🏻💗</h2>
+                            <span style="font-size:12px;color:var(--muted)">°:•.🐠*.•🪸.•:°</span>
+    </div>
+    <div class="body">
+      <div class="photos">
+        <div class="ph">
+          <img src="img/1.jpg" alt="photo 1">
+        </div>
+        <div class="ph">
+          <img src="img/2.jpg" alt="photo 2">
+        </div>
+        <div class="ph">
+          <img src="img/3.jpg" alt="photo 3">
+        </div>
+        <div class="ph">
+          <img src="img/4.jpg" alt="photo 4">
+        </div>
+      </div>
+  
+      <p style="margin:12px 0 0;color:var(--muted);font-size:12px;line-height:1.5">
+        ˚‧｡⋆🌼⋆｡‧˚𝑀𝑦 𝑙𝑜𝑣𝑒 🌍♥️🫵🏻
+      </p>
+    </div>
+  </div>
+  
+      
+      
+
+          <p style="margin:12px 0 0;color:var(--muted);font-size:12px;line-height:1.5">
+            ✧˚ ༘⋆2026✧˚ ༘ ⋆
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      Made with 🌼 by <b>Kim</b> — for Fern
+    </footer>
+  </div>
+
+  <script>
+    // =======================
+    // 1) Love Timer (13/12/2025 -> now, based on viewer's device time)
+    // =======================
+    // NOTE: month is 0-based in JS Date: 11 = December
+    const startDate = new Date(2025, 11, 13, 0, 0, 0); // 13 Dec 2025 00:00:00 local time
+
+    const elD = document.getElementById('d');
+    const elH = document.getElementById('h');
+    const elM = document.getElementById('m');
+    const elS = document.getElementById('s');
+    const sinceText = document.getElementById('sinceText');
+
+    function pad2(n){ return String(n).padStart(2,'0'); }
+
+    function updateTimer(){
+      const now = new Date();
+      let diff = now - startDate; // ms
+
+      // If opened before start date (diff negative), show countdown-ish but still safe
+      const isFuture = diff < 0;
+      diff = Math.abs(diff);
+
+      const totalSeconds = Math.floor(diff / 1000);
+      const days = Math.floor(totalSeconds / 86400);
+      const hours = Math.floor((totalSeconds % 86400) / 3600);
+      const minutes = Math.floor((totalSeconds % 3600) / 60);
+      const seconds = totalSeconds % 60;
+
+      elD.textContent = days;
+      elH.textContent = pad2(hours);
+      elM.textContent = pad2(minutes);
+      elS.textContent = pad2(seconds);
+
+      const label = isFuture ? "จะเริ่มคบกันในอีก" : "เราเป็นแฟนกันมาแล้ว";
+      sinceText.innerHTML =
+        `${label} <b>${days}</b> วัน <b>${pad2(hours)}</b> ชั่วโมง <b>${pad2(minutes)}</b> นาที <b>${pad2(seconds)}</b> วินาที<br>` +
+        `<span style="font-size:12px;color:var(--muted)">อยากให้เวลาถูกนับเเบบนี้ตลอดไปจัง🪴🌿</span>`;
+    }
+    updateTimer();
+    setInterval(updateTimer, 1000);
+
+    // =======================
+    // 2) Photo upload preview (4 images)
+    // =======================
+    document.querySelectorAll('input[type="file"]').forEach(inp=>{
+      inp.addEventListener('change', (e)=>{
+        const file = e.target.files && e.target.files[0];
+        if(!file) return;
+
+        const targetId = e.target.dataset.target;
+        const overlayId = e.target.dataset.overlay;
+
+        const img = document.getElementById(targetId);
+        const ov = document.getElementById(overlayId);
+
+        const url = URL.createObjectURL(file);
+        img.src = url;
+        img.style.display = 'block';
+        ov.style.display = 'none';
+      });
+    });
+
+    // =======================
+    // 3) Full-screen beautiful effect (Daisy confetti)
+    // =======================
+    const canvas = document.getElementById('fx');
+    const ctx = canvas.getContext('2d');
+    let W, H, DPR;
+
+    function resizeCanvas(){
+      DPR = Math.min(window.devicePixelRatio || 1, 2);
+      W = window.innerWidth;
+      H = window.innerHeight;
+      canvas.width = Math.floor(W * DPR);
+      canvas.height = Math.floor(H * DPR);
+      canvas.style.width = W + 'px';
+      canvas.style.height = H + 'px';
+      ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    function rand(min, max){ return Math.random()*(max-min)+min; }
+
+    function drawDaisy(x, y, r, rot, alpha){
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(rot);
+      ctx.globalAlpha = alpha;
+
+      // petals
+      const petals = 10;
+      for(let i=0;i<petals;i++){
+        ctx.rotate((Math.PI*2)/petals);
+        ctx.beginPath();
+        ctx.ellipse(0, -r*1.2, r*0.55, r*1.1, 0, 0, Math.PI*2);
+        ctx.fillStyle = 'rgba(255,255,255,0.95)';
+        ctx.fill();
+      }
+
+      // center
+      ctx.beginPath();
+      ctx.arc(0,0, r*0.55, 0, Math.PI*2);
+      ctx.fillStyle = 'rgba(255,212,77,0.95)';
+      ctx.fill();
+
+      // tiny highlight
+      ctx.beginPath();
+      ctx.arc(-r*0.15, -r*0.15, r*0.14, 0, Math.PI*2);
+      ctx.fillStyle = 'rgba(255,247,191,0.95)';
+      ctx.fill();
+
+      ctx.restore();
+    }
+
+    class Particle{
+      constructor(){
+        this.reset(true);
+      }
+      reset(fromTop){
+        this.x = rand(0, W);
+        this.y = fromTop ? rand(-80, -10) : rand(0, H);
+        this.vx = rand(-0.6, 0.6);
+        this.vy = rand(1.2, 3.8);
+        this.r = rand(7, 16);
+        this.rot = rand(0, Math.PI*2);
+        this.vrot = rand(-0.05, 0.05);
+        this.alpha = rand(0.65, 1);
+        this.life = rand(140, 260);
+      }
+      step(){
+        this.life--;
+        this.x += this.vx;
+        this.y += this.vy;
+        this.rot += this.vrot;
+
+        // gentle wind sway
+        this.vx += Math.sin((this.y/120) + this.rot) * 0.01;
+
+        if(this.y > H + 60 || this.x < -60 || this.x > W + 60 || this.life <= 0){
+          this.reset(true);
+        }
+      }
+      draw(){
+        drawDaisy(this.x, this.y, this.r, this.rot, this.alpha);
+      }
+    }
+
+    let particles = [];
+    let animId = null;
+    let burstTimeout = null;
+
+    function startBurst(){
+      // create many particles for a short burst
+      const count = Math.min(180, Math.floor(W * H / 9000)); // auto scale
+      particles = Array.from({length: count}, () => new Particle());
+
+      let frames = 0;
+      const maxFrames = 260; // about ~4s at 60fps
+
+      function loop(){
+        frames++;
+        ctx.clearRect(0,0,W,H);
+
+        // soft glow background while effect running
+        ctx.save();
+        ctx.globalAlpha = 0.12;
+        ctx.fillStyle = '#ff4da6';
+        ctx.beginPath();
+        ctx.arc(W*0.15, H*0.2, 220, 0, Math.PI*2);
+        ctx.fill();
+        ctx.fillStyle = '#ffd44d';
+        ctx.beginPath();
+        ctx.arc(W*0.85, H*0.25, 260, 0, Math.PI*2);
+        ctx.fill();
+        ctx.restore();
+
+        for(const p of particles){
+          p.step();
+          p.draw();
+        }
+
+        if(frames < maxFrames){
+          animId = requestAnimationFrame(loop);
+        }else{
+          // fade out
+          fadeOutCanvas();
+        }
+      }
+      cancelAnimationFrame(animId);
+      loop();
+    }
+
+    function fadeOutCanvas(){
+      let a = 1;
+      function f(){
+        a -= 0.06;
+        if(a <= 0){
+          ctx.clearRect(0,0,W,H);
+          cancelAnimationFrame(animId);
+          animId = null;
+          return;
+        }
+        ctx.save();
+        ctx.globalAlpha = a;
+        // redraw once with decreasing alpha
+        ctx.clearRect(0,0,W,H);
+        for(const p of particles){
+          p.step();
+          p.draw();
+        }
+        ctx.restore();
+        animId = requestAnimationFrame(f);
+      }
+      f();
+    }
+
+    document.getElementById('btnFx').addEventListener('click', ()=>{
+      // little haptic-ish bounce (visual)
+      startBurst();
+      // avoid overlapping timers
+      clearTimeout(burstTimeout);
+      burstTimeout = setTimeout(()=>{}, 10);
+    });
+
+    // optional: press "D" to trigger effect
+    window.addEventListener('keydown', (e)=>{
+      if(e.key.toLowerCase() === 'd') startBurst();
+    });
+  </script>
+</body>
+</html>
